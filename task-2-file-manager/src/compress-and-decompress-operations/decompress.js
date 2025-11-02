@@ -7,9 +7,21 @@ import { createBrotliDecompress } from "node:zlib";
  * Decompress file (using Brotli algorithm, should be done using Streams API)
  */
 export const decompress = async (pathToFile, pathToDestination) => {
-  const absolutePathToFile = path.resolve(process.cwd(), pathToFile);
-  const readStream = createReadStream(absolutePathToFile);
-  const writeStream = createWriteStream(pathToDestination);
+  try {
+    const absolutePathToFile = path.resolve(process.cwd(), pathToFile);
+    const absolutePathToDestination = path.resolve(
+      process.cwd(),
+      pathToDestination
+    );
 
-  await pipeline(readStream, createBrotliDecompress(), writeStream);
+    const readStream = createReadStream(absolutePathToFile);
+    const writeStream = createWriteStream(absolutePathToDestination);
+
+    readStream.pipe(createBrotliDecompress()).pipe(writeStream);
+
+    readStream.on("error", (error) => console.log("Operation failed"));
+    writeStream.on("error", (error) => console.log("Operation failed"));
+  } catch (error) {
+    console.log("Operation failed");
+  }
 };
